@@ -13,3 +13,6 @@
 [submodule "SZo"]
 	path = SZo
 	url = https://github.com/BingluCS/SZo.git
+[submodule "zfp"]
+	path = zfp
+	url = https://github.com/BingluCS/zfp.git
