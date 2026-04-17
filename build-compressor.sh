@@ -90,14 +90,10 @@ build_SPERR() {
     cd ../..
 }
 
-# build_tthresh() {
-#     echo "installing MGARD..."
-#     cd tthresh
-#     mkdir build
-#     cd build
-#      cmake -DCMAKE_BUILD_TYPE=Release ..
-#     cd ../..
-# }
+build_tthresh() {
+    echo "installing MGARD..."
+    bash build-mgard.sh
+}
 
 # build_tthresh() {
 #     echo "installing tthresh..."
@@ -125,7 +121,7 @@ case "$TARGET" in
 	;;
     # tthresh)
 	# build_tthresh
-	;;
+	# ;;
     all)
         build_PFPL
         build_zfp
