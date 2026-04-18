@@ -356,7 +356,7 @@ def run_mgard_para(cmp, shape, data_type, input_file, e, mode = 'abs', nums = 1)
     compressed_file = input_file + ".mgard"
     decompressed_file = input_file + ".mgard.out"
     os.environ["OMP_NUM_THREADS"] =  str(nums)
-    os.environ["OMP_PROC_BIND"] = "close"
+    # os.environ["OMP_PROC_BIND"] = "close"
     cpus = f"0-{nums-1}" 
     t = 'serial' if nums == 1 else 'openmp'
     cmp_dir = f"../{cmp}/build-openmp-cpu/mgard/bin/mgard-x"
@@ -369,9 +369,10 @@ def run_mgard_para(cmp, shape, data_type, input_file, e, mode = 'abs', nums = 1)
        '-s', 'inf', '-d', t,
        '-v', '2',
        '-l', 'huffman-zstd',
-    ] 
+    ]
+    # print(cmd)
     cmp_result = subprocess.run(cmd, capture_output=True, text=True)
-    # print(t)
+
     if cmp_result.returncode != 0:
         print("fail")
         return "fail", "fail", [None,None]
@@ -379,12 +380,10 @@ def run_mgard_para(cmp, shape, data_type, input_file, e, mode = 'abs', nums = 1)
         decmd = [
             "taskset", "-c", cpus,
             cmp_dir, "-x",
-            "-i", compressed_file, 
+            "-i", compressed_file,
             "-o", decompressed_file, '-d', t, '-v', '2'
-        ] 
+        ]
         dec_result = subprocess.run(decmd, check=True, capture_output=True, text=True)
-    
-
     return compressed_file, decompressed_file, [cmp_result, dec_result]
 
 
