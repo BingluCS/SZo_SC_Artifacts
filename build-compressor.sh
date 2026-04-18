@@ -90,7 +90,7 @@ build_SPERR() {
     cd ../..
 }
 
-build_tthresh() {
+build_mgard() {
     echo "installing MGARD..."
     bash build-mgard.sh
 }
@@ -119,16 +119,16 @@ case "$TARGET" in
     SPERR)
 	build_SPERR
 	;;
-    # tthresh)
-	# build_tthresh
-	# ;;
+    MGARD|mgard)
+	build_build_mgard
+	;;
     all)
         build_PFPL
         build_zfp
         build_SZ3
         build_SZo
         build_SPERR
-        # build_tthresh
+        build_mgard
         ;;
     *)
         echo "Usage: $0 {PFPL|pfpl|zfp|ZFP|SZ3|SZo|SPERR|MGARD|all}"

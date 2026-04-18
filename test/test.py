@@ -11,21 +11,7 @@ import argparse
 
 turn_omp = True
 omp_nums = [1,2,4,8,16,32,64]
-KEY_COLS = ['field', 'type', 'threads']
-def upsert_csv(csv_path, new_df):
-    if not os.path.exists(csv_path):
-        new_df.to_csv(csv_path, index=False)
-        return
-
-    old_df = pd.read_csv(csv_path)
-    merged = pd.concat([old_df, new_df], ignore_index=True)
-    merged = merged.drop_duplicates(
-        subset=KEY_COLS,
-        keep='last'
-    )
-
-    merged.to_csv(csv_path, index=False)
-
+datasets_name = "NYX"
 def append_row(csv_file, row):
     with open(csv_file, "a", newline="") as f:  # "a" = append
         writer = csv.writer(f)
@@ -405,14 +391,15 @@ def run_mgard_para(cmp, shape, data_type, input_file, e, mode = 'abs', nums = 1)
 
 def run_compressor(shape, data_type, data_path, compressor):
     global omp_nums
+    global datasets_name
     ddtype = np.float64 if data_type == "double" else np.float32
-    errors = ['1E-1', '1E-2','1E-3', '1E-4', '1E-5', '1E-6', '1E-7', '1E-8'] if data_type == "double" else ['1E-1', '1E-2','1E-3', '1E-4', '1E-5']
-    # errors = ['1E-1']
+    #errors = ['1E-1', '1E-2','1E-3', '1E-4', '1E-5', '1E-6', '1E-7', '1E-8'] if data_type == "double" else ['1E-1', '1E-2','1E-3', '1E-4', '1E-5']
+    errors = ['1E-2','1E-3', '1E-4']
     byte_num = 8 if data_type == "double" else 4
     directory = Path(data_path)
     target_files = [str(p) for p in directory.iterdir() if p.suffix in (".f32", ".d64")]
-
-    dataset = sys.argv[1]
+    
+    dataset = datasets_name
 
     if turn_omp is True:
         omp = "_omp"
@@ -442,7 +429,7 @@ def run_compressor(shape, data_type, data_path, compressor):
     odata_maxre = []
     odata_maxe = []
     # odata_len_hit = {i: [] for i in range(1, 11)}
-    print(f"Running {compressor} on dataset {sys.argv[1]}...")
+    print(f"Running {compressor} on dataset {datasets_name}...")
     data_num = np.prod(shape)
     for input_file in target_files:
         # if input_file.find("pressure.d64") == -1:
@@ -639,7 +626,7 @@ def run_compressor(shape, data_type, data_path, compressor):
                     # temp_rmse += [rmse]
                     temp_nrmse += [nrmse]
                     temp_psnr += [psnr]
-                elif compressor == 'MGARD':
+                elif compressor == 'MGARD' or compressor == 'MGARD-X':
                     compressed_file, decompressed_file, [cmp_result, dec_result] = run_mgard_para('MGARD',shape, data_type, input_file,  e, 'abs', nums)
                     if compressed_file == "fail":
                         temp_cmpth += [0]
@@ -732,11 +719,12 @@ def test_compressor(shape, data_type, data_path):
     run_compressor(shape, data_type, data_path, 'ZFP')
     run_compressor(shape, data_type, data_path, 'PFPL')
     run_compressor(shape, data_type, data_path, 'SZo')
-    run_compressor(shape, data_type, data_path, 'SZ3')
+    run_compressor(shape, data_type, data_path, 'SZ3.3')
     run_compressor(shape, data_type, data_path, 'SPERR')
-    run_compressor(shape, data_type, data_path, 'MGARD')
+    run_compressor(shape, data_type, data_path, 'MGARD-X')
 
 if __name__ == "__main__":
+    
     # input_file = sys.argv[2]
     data_type = "float"
     dim = 3
@@ -745,27 +733,28 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", required=True, help="input path")
+    parser.add_argument("-n", "--name", required=True, help="data type")
     parser.add_argument("-c", "--compressor", help="compressor name")
 
     args = parser.parse_args()
     data_path = args.input
-    if data_path.find("Miranda"):
+    datasets_name = args.name
+    if datasets_name == "Miranda":
         shape = [384, 384, 256]
         data_type = "double"
-    elif data_path.find("Hurricane"):
+    elif datasets_name == "Hurricane":
         shape = [500, 500, 100]
-    elif data_path.find("SCALE"):
+    elif datasets_name == "SCALE":
         shape = [1200, 1200, 98]
-        omp_nums = [1,2,4,8,16,32,64]
-    elif data_path.find("NYX") or data_path.find("JHTDB"):
+    elif datasets_name == "NYX" or datasets_name == "JHTDB":
         shape = [512, 512, 512]
-    elif data_path.find("CESM"):
+    elif datasets_name == "CESM":
         shape = [3600, 1800]
         dim = 2
-    elif data_path.find("EXAFEL"):
+    elif datasets_name == "EXAFEL":
         shape = [388, 5837120]
         dim = 2
-    elif data_path.find("tomobank"):
+    elif datasets_name == "tomobank":
         shape = [2048, 2048]
         dim = 2
     if args.compressor is None:
