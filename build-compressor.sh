@@ -120,7 +120,7 @@ case "$TARGET" in
 	build_SPERR
 	;;
     MGARD|mgard)
-	build_build_mgard
+	build_mgard
 	;;
     all)
         build_PFPL
